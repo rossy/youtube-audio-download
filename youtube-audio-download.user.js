@@ -13,8 +13,17 @@
 // @run-at         document-start
 // ==/UserScript==
 
-(function() {
- this.mp4js = {};
+var mp4js = (function() {
+ // mp4.js has some really weird scoping issues. Not that keeping the global
+ // namespace clean is really important here.
+ this.mp4js = this;
+ this.descr = this;
+ this.box = this;
+ this.utils = this;
+ window.mp4js = this;
+ window.descr = this;
+ window.box = this;
+ window.utils = this;
 /**
  * mp4.js Copyright 2012 - Syu Kato <ukyo.web@gmail.com>
  * @version 0.2
@@ -25,7 +34,7 @@ var mp4js = mp4js || {};
 mp4js.version = "0.2";
 /**
  * mp4.utils.js Copyright 2012 - Syu Kato <ukyo.web@gmail.com>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * http://www.apache.org/licenses/LICENSE-2.0
  */
@@ -87,7 +96,7 @@ this.getUi32 = function(bytes, offset){
  * @param {number} len
  * @param {number} offset
  * @return {string}
- * 
+ *
  * ascii only!
  */
 this.getStr = function(bytes, len, offset){
@@ -129,7 +138,7 @@ this.putUi32 = function(bytes, x, offset){
  * @param {Uint8Array} bytes
  * @param {string} s
  * @param {number} offset
- * 
+ *
  * ascii only!
  */
 this.putStr = function(bytes, s, offset){
@@ -159,7 +168,7 @@ this.concatByteArrays = function(byteArrays){
 })(this.mp4js), this);
 /**
  * Copyright 2012 - Syu Kato <ukyo.web@gmail.com>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * http://www.apache.org/licenses/LICENSE-2.0
  */
@@ -323,7 +332,7 @@ this.createInitialObjectDescriptor = function(objectDescrId, includeInlineProfil
 })(this.mp4js), this, this.mp4js.utils);
 /**
  * mp4.box.js Copyright 2012 - Syu Kato <ukyo.web@gmail.com>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * http://www.apache.org/licenses/LICENSE-2.0
  */
@@ -363,7 +372,7 @@ this.createFullBox = function(size, type, version, flags){
 };
 /**
  * Create a MPEG4AudioSampleDescriptionBox (mp4a).
- * 
+ *
  * aligned(8) class AudioSampleEntry(format) extends Atom('mp4a') {
  * 	uint(8)[6]  reserved = 0;
  *  uint(16)    data-reference-index;
@@ -375,7 +384,7 @@ this.createFullBox = function(size, type, version, flags){
  *  uint(16)    reserved = 0;
  *  ESDAtom     ES;
  * }
- * 
+ *
  * @param {number} dataReferenceIndex
  * @param {number} timeScale
  * @param {Uint8Array} esdsBox
@@ -393,11 +402,11 @@ this.createMp4aBox = function(dataReferenceIndex, timeScale, esdsBox){
 };
 /**
  * Create a ESDescriptorBox (esds).
- * 
+ *
  * aligned(8) class ESDAtom extends FullAtom('esds', version = 0, 0) {
  * 	ES_Descriptor ES;
  * }
- * 
+ *
  * @param {Uint8Array} esDescr
  * @return {Uint8Array}
  * TODO
@@ -409,7 +418,7 @@ this.createEsdsBox = function(esDescr){
 };
 /**
  * Create a TrackHeaderBox (tkhd).
- * 
+ *
  * aligned(8) class TrackHeaderAtom extends FullAtom('tkhd', version, flags) {
  * 	if (version == 1) {
  * 	 uint(64) creation-time;
@@ -431,7 +440,7 @@ this.createEsdsBox = function(esDescr){
  *  bit(32)     reserved = { if track_is_visual 0x01400000 else 0 };
  *  bit(32)     reserved = { if track_is_visual 0x00F00000 else 0 };
  * }
- * 
+ *
  * @param {number} creationTime
  * @param {number} modificationTime
  * @param {number} trackId
@@ -455,7 +464,7 @@ this.createTkhdBox = function(creationTime, modificationTime, trackId, duration,
 };
 /**
  * Create a MediaHeaderBox (mdhd).
- * 
+ *
  * aligned(8) class MediaHeaderAtom extends FullAtom('tkhd', version, 0) {
  * 	if (version == 1) {
  * 	 uint(64) creation-time;
@@ -472,7 +481,7 @@ this.createTkhdBox = function(creationTime, modificationTime, trackId, duration,
  *  uint(5)[3]  language; // packed ISO-639-2/T language code
  *  uint(16)    reserved = 0;
  * }
- * 
+ *
  * @param {number} creationTime
  * @param {number} modificationTime
  * @param {number} timeScale
@@ -490,14 +499,14 @@ this.createMdhdBox = function(creationTime, modificationTime, timeScale, duratio
 };
 /**
  * Create a HandlerBox (hdlr).
- * 
+ *
  * aligned(8) class HandlerAtom extends FullAtom('hdlr', version, 0) {
  * 	uint(32)    reserved = 0;
  *  uint(32)    handler-type;
  *  uint(8)[12] reserved = 0;
  *  string      name;
  * }
- * 
+ *
  * @param {string} handlerType
  * @param {string} name
  * @return {Uint8Array}
@@ -525,11 +534,11 @@ this.concatBoxes = function(type, boxes){
 };
 /**
  * Create a URLDataEntryBox (url ).
- * 
+ *
  * aligned(8) class DataEntryUrlAtom extends FullAtom('url ', version = 0, flags) {
  * 	string location;
  * }
- * 
+ *
  * @param {string} location
  * @param {number} flags
  * @return {Uint8Array}
@@ -543,12 +552,12 @@ this.createUrlBox = function(location, flags){
 };
 /**
  * Create a URNDataEntryBox (urn ).
- * 
+ *
  * aligned(8) class DataEntryUrnAtom extends FullAtom('urn ', version = 0, flags) {
  * 	string name;
  *  string location;
  * }
- * 
+ *
  * @param {string} name
  * @param {string} location
  * @param {number} flags
@@ -559,15 +568,15 @@ this.createUrnBox = function(name, location, flags){
 };
 /**
  * Create a DataReferenceBox (dref).
- * 
+ *
  * aligned(8) class DataReferenceAtom extends FullAtom('dref', version = 0, 0) {
  * 	uint(32) entry-count;
  *  for (int i = 0; i < entry-countl i++) {
  * 	 DataEntryAtom(entry-version, entry-flags) data-entry;
  *  }
  * }
- * 
- * @param {...Uint8Array} dataEntries 
+ *
+ * @param {...Uint8Array} dataEntries
  * @return {Uint8Array}
  */
 this.createDrefBox = function(dataEntries){
@@ -581,7 +590,7 @@ this.createDrefBox = function(dataEntries){
 };
 /**
  * Create a SampleSizeBox (stsz).
- * 
+ *
  * aligned(8) class SampleSizeAtom extends FullAtom('stsz', version = 0, 0) {
  * 	uint(32) sample-size;
  *  uint(32) sample-count;
@@ -589,7 +598,7 @@ this.createDrefBox = function(dataEntries){
  * 	 uint(32) entry-size;
  *  }
  * }
- * 
+ *
  * @param {number} sampleSize
  * @param {Array} sampleSizeArr
  * @return {Uint8Array}
@@ -608,7 +617,7 @@ this.createStszBox = function(sampleSize, sampleSizeArr){
 };
 /**
  * Create a MovieHeaderBox (mvhd).
- * 
+ *
  * aligned(8) class MovieHeaderAtom extends FullAtom('mvhd', version, 0) {
  * 	if (version == 1) {
  * 	 uint(64) creation-time;
@@ -629,7 +638,7 @@ this.createStszBox = function(sampleSize, sampleSizeArr){
  *  bit(32)[6]  reserved = 0;
  *  uint(32)    next-track-ID;
  * }
- * 
+ *
  * @param {number} creationTime
  * @param {number} modificationTime
  * @param {number} timeScale
@@ -653,11 +662,11 @@ this.createMvhdBox = function(creationTime, modificationTime, timeScale, duratio
 };
 /**
  * Create a ObjectDescriptorBox (iods).
- * 
+ *
  * aligned(8) class ObjectDescriptorAtom extends FullAtom('iods', version = 0, 0) {
  * 	InitialObjectDescriptor OD;
  * }
- * 
+ *
  * @param {Uint8Array} initalObjectDescr
  * @return {Uint8Array}
  */
@@ -689,14 +698,14 @@ this.createDinfBox = function(args){
 };
 /**
  * Create a sample description box (stsd).
- * 
+ *
  * aligned(8) class SampleDescriptionAtom extends FullAtom('stsd', version = 0, 0) {
  * 	uint(32) entry-count;
  *  for (int i = 0; i < entry-count; i++) {
  * 	 SampleEntry(entry-format) entry;
  *  }
  * }
- * 
+ *
  * @param {...Uint8Array} sampleEntries
  * @return {Uint8Array}
  */
@@ -711,7 +720,7 @@ this.createStsdBox = function(sampleEntries){
 };
 /**
  * Create a TimeToSampleBox (stts).
- * 
+ *
  * aligned(8) class TimeToSampleBox extends FullAtom('stts', version = 0, 0) {
  * 	uint(32) entry-count;
  *  for (int i = 0; i < entry-count; i++) {
@@ -719,7 +728,7 @@ this.createStsdBox = function(sampleEntries){
  *   int(32) sample-duration;
  *  }
  * }
- * 
+ *
  * @param {Array} entries
  * @return {Uint8Array}
  */
@@ -738,7 +747,7 @@ this.createSttsBox = function(entries){
 };
 /**
  * Create a SampleToChunkBox (stsc).
- * 
+ *
  * aligned(8) class SampleToChunkAtom extends FullAtom('stsc', version = 0, 0) {
  * 	uint(32) entry-count;
  *  for (int i = 0; i < entry-count; i++) {
@@ -747,7 +756,7 @@ this.createSttsBox = function(entries){
  *   uint(32) samples-description-index;
  *  }
  * }
- * 
+ *
  * @param {Array.<Object>} chunks
  * @return {Uint8Array}
  */
@@ -766,14 +775,14 @@ this.createStscBox = function(chunks){
 };
 /**
  * Create a ChunkOffsetBox (stco).
- * 
+ *
  * aligned(8) class ChunkOffsetAtom extends FullAtom('stco', version = 0, 0) {
  * 	uint(32) entry-count;
  *  for (int i = 0; i < entry-count; i++) {
  * 	 uint(32) chunk-offset;
  *  }
  * }
- * 
+ *
  * @param {Array} chunkOffsets
  * @return {Uint8Array}
  */
@@ -787,11 +796,11 @@ this.createStcoBox = function(chunkOffsets){
 };
 /**
  * Create a FreeSpaceBox (free).
- * 
+ *
  * aligned(8) class FreeSpaceAtom extends Atom(free-type) {
  * 	uint(8) data[];
  * }
- * 
+ *
  * @param {string} str
  * @return {Uint8Array}
  */
@@ -803,7 +812,7 @@ this.createFreeBox = function(str){
 /**
  * Create a file type box (ftyp).
  * @param {string} main
- * @param {...string} other 
+ * @param {...string} other
  * @return {Uint8Array}
  */
 this.createFtypBox = function(main, other){
@@ -825,7 +834,7 @@ this.createFtypBox = function(main, other){
 })(this.mp4js), this, this.mp4js.utils);
 /**
  * mp4.main.js Copyright 2012 - Syu Kato <ukyo.web@gmail.com>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * http://www.apache.org/licenses/LICENSE-2.0
  */
@@ -1135,7 +1144,7 @@ function getBoxInfo(bytes, offset){
 }
 /**
  * Mp4 Parser
- * 
+ *
  * @constructor
  * @param {ArrayBuffer|Uint8Array} buffer
  */
@@ -1212,7 +1221,7 @@ this.Mp4.prototype = {
 };
 /**
  * Convert a row aac file to a m4a file.
- * 
+ *
  * @param {ArrayBuffer} buffer
  * @return {ArrayBuffer}
  */
@@ -1296,14 +1305,66 @@ this.aacToM4a = function(buffer){
  return concatByteArrays(ftyp, moov, mdat, free).buffer;
 };
 }).call(this.mp4js, this);
-}).call(window);
+ return this;
+}).call({});
 (function() {
  "use strict";
  function script(url) {
-var blob, blobURL;
+var blob, blobURL, xhr;
+window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem || window.mozRequestFileSystem;
+window.addEventListener("unload", function() {
+ destroy();
+}, false);
 function sendMessage(type, data)
 {
  window.parent.postMessage(JSON.stringify({ type: type, data: data }), "*");
+}
+function destroy()
+{
+ blob = null;
+ if (blobURL)
+  URL.revokeObjectURL(blobURL);
+ blobURL = null;
+ sendMessage("revoke-ack");
+}
+function saveAs(blob, defaultName)
+{
+ var saveLink = document.createElement("a");
+ if ("download" in saveLink)
+ {
+  saveLink.setAttribute("href", blobURL);
+  saveLink.setAttribute("download", defaultName);
+  var e = document.createEvent("MouseEvents");
+  e.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+  if (saveLink.dispatchEvent(e))
+  {
+   sendMessage("save-ack");
+   return;
+  }
+ }
+ if (requestFileSystem)
+  requestFileSystem(window.TEMPORARY, blob.size, function(fs) {
+   fs.root.getFile(defaultName, { create: true, exclusive: false }, function(fileEntry) {
+    fileEntry.createWriter(function(fileWriter) {
+     fileWriter.onwriteend = function() {
+      window.location.href = fileEntry.toURL();
+      sendMessage("save-ack");
+     };
+     fileWriter.onerror = function() {
+      sendMessage("error", { msg: "Error writing file" });
+     };
+     fileWriter.write(blob);
+    }, function() {
+     sendMessage("error", { msg: "Error creating file" });
+    });
+   }, function() {
+    sendMessage("error", { msg: "Error creating file" });
+   });
+  }, function() {
+   sendMessage("error", { msg: "Couldn't get filesystem access" });
+  });
+ else
+  sendMessage("save-fail");
 }
 function processMessage(type, data)
 {
@@ -1313,8 +1374,15 @@ function processMessage(type, data)
    get(url);
    break;
   case "revoke":
-   blob = null;
-   URL.revokeObjectURL(blobURL);
+   destroy();
+   break;
+  case "cancel":
+   if (xhr)
+    xhr.abort();
+   sendMessage("cancel-ack");
+   break;
+  case "save":
+   saveAs(blob, data.defaultName);
    break;
  }
 }
@@ -1326,13 +1394,13 @@ window.addEventListener("message", function(e) {
 }, false);
 function process(data)
 {
- var mp4 = new mp4js.Mp4(data), aac, m4a;
+ var mp4 = new mp4js.Mp4(new Uint8Array(data)), aac, m4a;
  data = null;
  try {
   aac = mp4.extractAACAsArrayBuffer();
  }
  catch (e) {
-  sendMessage("error", { msg: "Error extracting AAC audio" });
+  sendMessage("error", { msg: "Error extracting AAC audio: " + e });
   return;
  }
  mp4 = null;
@@ -1340,21 +1408,24 @@ function process(data)
   m4a = mp4js.aacToM4a(aac);
  }
  catch (e) {
-  sendMessage("error", { msg: "Error creating M4A" });
+  sendMessage("error", { msg: "Error creating M4A: " + e });
   return;
  }
- blob = new Blob([m4a], { type: "audio/mp4" });
+ blob = new Blob([new Uint8Array(m4a)], { type: "audio/mp4" });
  blobURL = URL.createObjectURL(blob);
  sendMessage("finished", { blob: blobURL });
 }
 function get(url)
 {
- var xhr = new XMLHttpRequest();
+ xhr = new XMLHttpRequest();
  xhr.open("GET", url, true);
  xhr.responseType = "arraybuffer";
  xhr.onload = function(e) {
   if (xhr.status == 200)
+  {
    process(xhr.response);
+   xhr = null;
+  }
   else
    sendMessage("error", { msg: "Couldn't retrieve video, status code: " + xhr.status });
  };
@@ -1363,7 +1434,7 @@ function get(url)
    sendMessage("progress", { loaded: e.loaded, total: e.total });
  };
  xhr.onerror = function(e) {
-  sendMessage("error", { msg: "Couldn't retrieve video"});
+  sendMessage("error", { msg: "Couldn't retrieve video: " + e });
  };
  xhr.send();
 }

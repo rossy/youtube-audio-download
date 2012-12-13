@@ -1,6 +1,6 @@
 /**
  * mp4.utils.js Copyright 2012 - Syu Kato <ukyo.web@gmail.com>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * http://www.apache.org/licenses/LICENSE-2.0
  */
@@ -70,7 +70,7 @@ this.getUi32 = function(bytes, offset){
  * @param {number} len
  * @param {number} offset
  * @return {string}
- * 
+ *
  * ascii only!
  */
 this.getStr = function(bytes, len, offset){
@@ -116,7 +116,7 @@ this.putUi32 = function(bytes, x, offset){
  * @param {Uint8Array} bytes
  * @param {string} s
  * @param {number} offset
- * 
+ *
  * ascii only!
  */
 this.putStr = function(bytes, s, offset){
@@ -132,7 +132,7 @@ this.concatByteArrays = function(byteArrays){
 		size = 0,
 		offset = 0,
 		i, n, ret;
-	
+
 	for(i = 0, n = byteArrays.length; i < n; ++i) size += byteArrays[i].length;
 	ret = new Uint8Array(size);
 	for(i = 0; i < n; ++i) {

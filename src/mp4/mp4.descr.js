@@ -1,6 +1,6 @@
 /**
  * Copyright 2012 - Syu Kato <ukyo.web@gmail.com>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * http://www.apache.org/licenses/LICENSE-2.0
  */
@@ -49,7 +49,7 @@ this.createESDescriptor = function(esId, streamPriority, dependsOnEsId, url, dec
 		size = 3,
 		offset = 2,
 		descr, arr;
-	
+
 	subDescrs = subDescrs == null ? [] : isType(subDescrs, Array) ? subDescrs : [subDescrs];
 	size += streamDependenceFlag ? 2 : 0;
 	size += urlFlag ? (url.length + 1) : 0;
@@ -91,7 +91,7 @@ this.createESDescriptor = function(esId, streamPriority, dependsOnEsId, url, dec
  */
 this.createDecodeConfigDescriptor = function(objectTypeIndication, streamType, upStream, bufferSizeDB, maxBitrate, avgBitrate, subDescrs){
 	var descr, arr;
-	
+
 	subDescrs = subDescrs == null ? [] : isType(subDescrs, Array) ? subDescrs : [subDescrs];
 	arr = concatByteArrays(subDescrs);
 	descr = self.createBaseDescriptor(arr.length + 13, 0x04);
@@ -143,7 +143,7 @@ this.createSLConfigDescriptor = function(predefined){
 this.createInitialObjectDescriptor = function(objectDescrId, includeInlineProfileLevelFlag, url, odProfile, sceneProfile, audioProfile, visualProfile, graphicsProfile, subDescrs, extDescrs){
 	var urlFlag = typeof url === "string" ? 1 : 0,
 		size = 2, offset = 4, descr, subArr, extArr;
-	
+
 	subDescrs = subDescrs == null ? [] : isType(subDescrs, Array) ? subDescr : [subDescr];
 	extDescrs = extDescrs == null ? [] : isType(extDescrs, Array) ? extDescr : [extDescr];
 	size += urlFlag ? url.length + 1 : 5;

@@ -1,6 +1,6 @@
 /**
  * mp4.main.js Copyright 2012 - Syu Kato <ukyo.web@gmail.com>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * http://www.apache.org/licenses/LICENSE-2.0
  */
@@ -16,7 +16,7 @@ var BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.MS
 	isType = this.utils.isType,
 	concatByteArrays = this.utils.concatByteArrays
 	self = this,
-	
+
 	//see: http://www.mp4ra.org/atoms.html
 	boxes = {
 		ID32: getBox,
@@ -37,7 +37,7 @@ var BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.MS
 		ctts: function(bytes, offset, size){
 			var ret = {size: size, body: []},
 				i, n = getUi32(bytes, offset += 12);
-				
+
 			for(i = 0; i < n; ++i){
 				ret.body.push({
 					compositionOffset: getUi32(bytes, offset += 4),
@@ -124,7 +124,7 @@ var BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.MS
 		mvci: function(bytes, offset, size){},
 		mvex: getBox,
 		mvhd: function(bytes, offset, size){
-			
+
 		},
 		mvra: function(bytes, offset, size){},
 		nmhd: function(bytes, offset, size){},
@@ -167,7 +167,7 @@ var BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.MS
 		stco: function(bytes, offset, size){
 			var ret = {size: size, body: []},
 				i, n = getUi32(bytes, offset += 12);
-			
+
 			for(i = 0; i < n; ++i){
 				ret.body.push(getUi32(bytes, offset += 4));
 			}
@@ -177,7 +177,7 @@ var BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.MS
 		stsc: function(bytes, offset, size){
 			var ret = {size: size, body: []},
 				i, n = getUi32(bytes, offset += 12);
-			
+
 			for(i = 0; i < n; ++i){
 				ret.body.push({
 					firstChunk: getUi32(bytes, offset += 4),
@@ -204,7 +204,7 @@ var BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.MS
 		stsz: function(bytes, offset, size){
 			var ret = {size: size, body: []},
 				i, n = getUi32(bytes, offset += 16);
-			
+
 			for(i = 0; i < n; ++i){
 				ret.body.push(getUi32(bytes, offset += 4));
 			}
@@ -237,7 +237,7 @@ var BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.MS
 		vwdi: function(bytes, offset, size){},
 		'xml ': function(bytes, offset, size){},
 		yrrc: function(bytes, offset, size){},
-		
+
 		//codecs
 		mp4a: function(bytes, offset, size){
 			return {
@@ -282,7 +282,7 @@ function getBox(bytes, offset, size){
 	var ret = {size: size},
 		last = offset + size,
 		boxInfo, box;
-	
+
 	offset += 8;
 	while(offset < last){
 		boxInfo = getBoxInfo(bytes, offset);
@@ -330,7 +330,7 @@ function getBoxInfo(bytes, offset){
 
 /**
  * Mp4 Parser
- * 
+ *
  * @constructor
  * @param {ArrayBuffer|Uint8Array} buffer
  */
@@ -348,7 +348,7 @@ this.Mp4.prototype = {
 		if(this.cache.tree) return this.cache.tree;
 		return this.cache.tree = getBox(this.bytes, -8, this.bytes.length);
 	},
-	
+
 	/**
 	 * @return {ArrayBuffer}
 	 */
@@ -360,7 +360,7 @@ this.Mp4.prototype = {
 			resultOffset = 0,
 			offset = 0,
 			aacHeader = new Uint8Array(new ArrayBuffer(7));
-		
+
 		if(isType(tracks, Array)){
 			tracks.forEach(function(track){
 				if(track.mdia.hdlr.type === 'soun'){
@@ -374,19 +374,19 @@ this.Mp4.prototype = {
 				throw 'This file does not have audio files.';
 			}
 		}
-		
+
 		mp4a = audioTrack.mdia.minf.stbl.stsd.mp4a;
 		sampleToChunkEntries = audioTrack.mdia.minf.stbl.stsc.body;
 		sampleSizeEntries = audioTrack.mdia.minf.stbl.stsz.body;
 		chunkEntries = audioTrack.mdia.minf.stbl.stco.body;
-		
+
 		result = new Uint8Array(sampleSizeEntries.length * 7 + sampleSizeEntries.reduce(function(a, b){return a + b}));
-		
+
 		aacHeader[0] = 0xFF;
 		aacHeader[1] = 0xF9;
 		aacHeader[2] = 0x40 | (SAMPLERATE_TABLE.indexOf(mp4a.sampleRate) << 2) | (mp4a.channels >> 2);
 		aacHeader[6] = 0xFC;
-		
+
 		for(i = 0, idx = 0, n = sampleToChunkEntries.length; i < n; ++i){
 			j = sampleToChunkEntries[i].firstChunk - 1;
 			m = i + 1 < n ? sampleToChunkEntries[i + 1].firstChunk - 1 : chunkEntries.length;
@@ -398,7 +398,7 @@ this.Mp4.prototype = {
 					aacHeader[3] = (mp4a.channels << 6) | (fileSize >> 11);
 					aacHeader[4] = fileSize >> 3;
 					aacHeader[5] = (fileSize << 5) | (0x7ff >> 6);
-					
+
 					result.set(aacHeader, resultOffset);
 					resultOffset += 7;
 					result.set(this.bytes.subarray(offset, offset += sampleSizeEntries[idx]), resultOffset);
@@ -408,7 +408,7 @@ this.Mp4.prototype = {
 		}
 		return result.buffer;
 	},
-	
+
 	extractAACAsBlob: function(){
 		var bb = new BlobBuilder();
 		bb.append(this.extractAACAsArrayBuffer());
@@ -419,7 +419,7 @@ this.Mp4.prototype = {
 
 /**
  * Convert a row aac file to a m4a file.
- * 
+ *
  * @param {ArrayBuffer} buffer
  * @return {ArrayBuffer}
  */
@@ -439,11 +439,11 @@ this.aacToM4a = function(buffer){
 		smhd, minf, mdhd, hdlr, mdia, tkhd, iods, mdat,
 		free, mvhd, trak,
 		adts = {};
-	
+
 	function getFrameLength(offset) {
 		return ((bytes[offset + 3] & 0x3) << 11) | (bytes[offset + 4] << 3) | (bytes[offset + 5] >> 5);
 	}
-	
+
 	//aac header
 	adts.id = (bytes[1] & 0x8) >> 3;
 	adts.profile = bytes[2] >> 6;
@@ -451,7 +451,7 @@ this.aacToM4a = function(buffer){
 	adts.channelConf = ((bytes[2] & 1) << 2) | (bytes[3] >> 6);
 	adts.original = bytes[3] & 0x20;
 	adts.bufferFullness = ((bytes[5] & 0x1F) << 6) | (bytes[6] >> 2);
-	
+
 	//count aac samples
 	while(offset < bytes.length) {
 		sampleOffsets[count] = offset;
@@ -459,7 +459,7 @@ this.aacToM4a = function(buffer){
 		offset += getFrameLength(offset);
 	}
 	samplesPerChunk = count;
-	
+
 	initialObjectDescr = self.descr.createInitialObjectDescriptor(0x01, 0x00, null, 0xFF, 0xFF, 0x29, 0xFF, 0xFF);
 	//aac header info?
 	arr = new Uint8Array(2);
@@ -470,7 +470,7 @@ this.aacToM4a = function(buffer){
 	esDescr = self.descr.createESDescriptor(0, 0, null, null, decConfigDescr, slConfigDescr, []);
 	esds = self.box.createEsdsBox(esDescr);
 	mp4a = self.box.createMp4aBox(1, adts.sampleRate, esds);
-	
+
 	ftyp = self.box.createFtypBox("M4A ", "isom", "mp42");
 	stts = self.box.createSttsBox([{count: count, duration: 1024}]);
 	stsc = self.box.createStscBox({firstChunk: 1, samplesPerChunk: samplesPerChunk, samplesDescriptionIndex: 1});
@@ -483,7 +483,7 @@ this.aacToM4a = function(buffer){
 	tkhd = self.box.createTkhdBox(currentTime, currentTime, 1, ~~(count * 1024 * 600 / adts.sampleRate));
 	iods = self.box.createIodsBox(initialObjectDescr);
 	mvhd = self.box.createMvhdBox(currentTime, currentTime, 600, ~~(count * 1024 * 600 / adts.sampleRate), 2);
-	
+
 	dataSize = sampleSizes.reduce(function(a, b){return a + b});
 	dataStart =
 		ftyp.length + stts.length + stsc.length + stsz.length +
@@ -492,13 +492,13 @@ this.aacToM4a = function(buffer){
 	dataStart += 8 * 6;
 	dataStart += (~~(sampleSizes.length / samplesPerChunk)) * 4 + 16;
 	stco = self.box.createStcoBox([dataStart]);
-	
+
 	stbl = self.box.concatBoxes("stbl", stsd, stts, stsc, stsz, stco);
 	minf = self.box.concatBoxes("minf", smhd, dinf, stbl);
 	mdia = self.box.concatBoxes("mdia", mdhd, hdlr, minf);
 	trak = self.box.concatBoxes("trak", tkhd, mdia);
 	moov = self.box.concatBoxes("moov", mvhd, iods, trak);
-	
+
 	mdat = self.box.createBox(dataSize + 8, "mdat");
 	dataOffset = 0;
 	mdatOffset = 8;
@@ -507,9 +507,9 @@ this.aacToM4a = function(buffer){
 		mdat.set(bytes.subarray(dataOffset + 7, dataOffset + 7 + sampleSizes[i]), mdatOffset);
 		mdatOffset += sampleSizes[i];
 	}
-	
+
 	free = self.box.createFreeBox("Produced with mp4.js " + self.version);
-	
+
 	return concatByteArrays(ftyp, moov, mdat, free).buffer;
 };
 

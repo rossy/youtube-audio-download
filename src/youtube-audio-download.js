@@ -13,15 +13,26 @@
 // @run-at         document-start
 // ==/UserScript==
 
-(function() {
-	this.mp4js = {};
+var mp4js = (function() {
+	// mp4.js has some really weird scoping issues. Not that keeping the global
+	// namespace clean is really important here.
+	this.mp4js = this;
+	this.descr = this;
+	this.box = this;
+	this.utils = this;
+	window.mp4js = this;
+	window.descr = this;
+	window.box = this;
+	window.utils = this;
 
 #import "mp4/mp4.js"
 #import "mp4/mp4.utils.js"
 #import "mp4/mp4.descr.js"
 #import "mp4/mp4.box.js"
 #import "mp4/mp4.main.js"
-}).call(window);
+
+	return this;
+}).call({});
 
 (function() {
 	"use strict";
